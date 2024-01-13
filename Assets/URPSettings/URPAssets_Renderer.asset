@@ -12,10 +12,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 402e5267056fc3540952c78a712f0eae, type: 3}
   m_Name: PixelizeRendererFeature
   m_EditorClassIdentifier: 
-  m_Active: 1
+  m_Active: 0
   FilterComputeShader: {fileID: 7200000, guid: 4afeab6f697e4ce42ab10b24436010a3, type: 3}
   KernelName: Pixelate
   BlockSize: 10
+--- !u!114 &-353507712386813745
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 66e61c1d02e456747bdac45d96120d65, type: 3}
+  m_Name: EdgeDetectionRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  _settings:
+    _edgeOnly: 0
+    _edgeColor: {r: 0.8679245, g: 0.8679245, b: 0.8679245, a: 1}
+    _backgroundColor: {r: 0.754717, g: 0, b: 0, a: 1}
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -32,7 +49,8 @@ MonoBehaviour:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
   m_RendererFeatures:
   - {fileID: -8597149932412469394}
-  m_RendererFeatureMap: 6effc7a5afc9b088
+  - {fileID: -353507712386813745}
+  m_RendererFeatureMap: 6effc7a5afc9b088cfb0d2c99b1618fb
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}

@@ -298,6 +298,7 @@
 
         UsePass "Universal Render Pipeline/Lit/ShadowCaster"
 
+        /*
         Pass
         {
             Name "DepthOnly"
@@ -327,7 +328,7 @@
             #include "Packages/com.unity.render-pipelines.universal/Shaders/LitInput.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthOnlyPass.hlsl"
             ENDHLSL
-        }
+        }*/
 
         Pass
         {

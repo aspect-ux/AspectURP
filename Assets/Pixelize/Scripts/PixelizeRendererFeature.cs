@@ -105,10 +105,10 @@ public class PixelizeRendererFeature : ScriptableRendererFeature
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)
     {
         if (_initialized)
-            {
-                renderer.EnqueuePass(m_ScriptablePass);
-            }
+        {
+            renderer.EnqueuePass(m_ScriptablePass);
         }
+    }
 }
 
 
