@@ -1,0 +1,126 @@
+#pragma kernel CSMainDiffuse
+#define PI 3.1415926
+
+TextureCube<float4> _Cubemap;
+SamplerState _PointClamp;
+RWStructuredBuffer<float4> _Reslut;
+int _Face;
+int _Resolution;
+
+float3 _SH_PARAM0;
+float3 _SH_PARAM1;
+float3 _SH_PARAM2;
+float3 _SH_PARAM3;
+float3 _SH_PARAM4;
+float3 _SH_PARAM5;
+float3 _SH_PARAM6;
+float3 _SH_PARAM7;
+float3 _SH_PARAM8;
+
+float3 GetSH9(float3 normal)
+{
+    float3 res = _SH_PARAM0 * 0.28209479f;
+
+    float3 temp = normal.y * _SH_PARAM1  * 0.48860251;
+    res += temp;
+    temp = normal.z * _SH_PARAM2 *  0.48860251;
+    res += temp;
+    temp = normal.x * _SH_PARAM3 *  0.48860251;
+    res += temp;
+
+    temp = normal.x * normal.y * _SH_PARAM4 *  1.09254843;
+    res += temp;
+    temp = normal.y * normal.z * _SH_PARAM5 *  1.09254843;
+    res += temp;
+    temp = (-normal.x * normal.x - normal.y * normal.y + 2 * normal.z * normal.z) * _SH_PARAM6 *  0.31539157;
+    res += temp;
+    temp = normal.z * normal.x * _SH_PARAM7 *  1.09254843f;
+    res += temp;
+    temp = (normal.x * normal.x - normal.y * normal.y) * _SH_PARAM8 *  0.54627421;
+    res += temp;
+    return res ;
+}
+    
+//根据面和uv计算方向
+ float3 DirectionFromCubemapTexel(int face, float2 uv)
+{
+    float3 dir = 0;
+
+    switch (face)
+    {
+    case 0: //+X
+        dir.x = 1.0;
+        dir.yz = uv.yx * -2.0 + 1.0;
+        break;
+
+    case 1: //-X
+        dir.x = -1.0;
+        dir.y = uv.y * -2.0f + 1.0f;
+        dir.z = uv.x * 2.0f - 1.0f;
+        break;
+
+    case 2: //+Y
+        dir.xz = uv * 2.0f - 1.0f;
+        dir.y = 1.0f;
+        break;
+    case 3: //-Y
+        dir.x = uv.x * 2.0f - 1.0f;
+        dir.z = uv.y * -2.0f + 1.0f;
+        dir.y = -1.0f;
+        break;
+
+    case 4: //+Z
+        dir.x = uv.x * 2.0f - 1.0f;
+        dir.y = uv.y * -2.0f + 1.0f;
+        dir.z = 1;
+        break;
+
+    case 5: //-Z
+        dir.xy = uv * -2.0f + 1.0f;
+        dir.z = -1;
+        break;
+    }
+    return normalize(dir);
+}
+
+[numthreads(8,8,1)]
+void CSMainDiffuse(uint3 id : SV_DispatchThreadID)
+{
+    //+0.5/Resolution是像素中心点
+    float2 uv = (float2)id.xy / (float2)(_Resolution) + 0.5 / (float2)_Resolution;
+    uint index = id.y * _Resolution + id.x;
+    float3 dir = DirectionFromCubemapTexel(_Face, uv);
+
+    float3 tangent = float3(0, 1, 0);
+    float upOrDown = dot(dir, tangent);
+    if (upOrDown == 1)
+        tangent = float3(1, 0, 0);
+    else if (upOrDown == -1)
+        tangent = float3(-1, 0, 0);
+    else
+        tangent = normalize(cross(float3(0, 1, 0), dir));
+    float3 binormal = normalize(cross(dir, tangent));
+    float sampleDelta = 0.025;
+    int N1 = 0;
+    int N2 = 0;
+    float3 irradiance = float3(0, 0, 0);
+
+    for (float phi = 0.0; phi < 2.0 * PI; phi += sampleDelta)
+    {
+        N2 = 0;
+
+        for (float theta = 0.0; theta < 0.5 * PI; theta += sampleDelta)
+        {
+            //球面坐标
+            float3 tangentSpaceNormal = float3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+            float3 worldNormal = tangentSpaceNormal.x * tangent + tangentSpaceNormal.y * binormal + tangentSpaceNormal.z * dir;
+            irradiance += _Cubemap.SampleLevel(_PointClamp, worldNormal, 0).rgb * cos(theta) * sin(theta);
+            N2++;
+        }
+        N1++;
+    }
+    //对应黎曼和积分
+    float weight = PI  / (N1 * N2);
+    irradiance *= weight;
+    _Reslut[index] = float4(irradiance.xyz,1.0);
+}
