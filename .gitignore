@@ -71,9 +71,15 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # extra excludes
+# in Assets
 /[Aa]ssets/Plugins/
 .vscode/
 .idea/
 /[Aa]ssets/Resources/
 /[Aa]ssets/Temp/
 /[Aa]ssets/PBRLibrary/Models/HiddenModels/
+
+# root
+/Modules/
+/Bundles/
+
