@@ -1,0 +1,6 @@
+TODO: MAKE A Basic Demo for our horror game
+
+1. achieve the basic scene and basic player controller
+2. solve the pixelation problem
+3. game framework preparation
+3. migrate to android platform

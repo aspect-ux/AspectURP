@@ -1,0 +1,60 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+// Create a RenderTexture with enableRandomWrite flag and set it
+// with cs.SetTexture
+RWTexture2D<float4> Result;
+
+static const float PI=3.14159265f;
+static const float EPSILON = 1e-8;
+
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+CBUFFER_START(UnityPerMaterial)
+float4x4 _CameraToWorld,_CameraInverseProjection;
+//随机产生射线的像素偏移,用于抗锯齿
+float2 _PixelOffset;
+//光照
+float4 _DirectionalLight;
+CBUFFER_END
+
+// texutres
+Texture2D<float4>_SkyboxTexture;
+SamplerState sampler_SkyboxTexture;
+
+#include "Helpers.hlsl"
+#include "RayTracingData.hlsl"
+#include "RayTracing.hlsl"
+
+
+//-------------------------------------
+//- KERNEL
+
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    _Pixel = id.xy;
+
+    // Get the dimensions of the RenderTexture
+    uint width, height;
+    Result.GetDimensions(width, height);
+
+    // Transform pixel to [-1,1] range
+    float2 uv = float2((id.xy + _PixelOffset) / float2(width, height) * 2.0f - 1.0f);
+
+    // Get a ray for the UVs
+    Ray ray = CreateCameraRay(uv);
+
+    // Trace and shade the ray
+    float3 result = float3(0, 0, 0);
+    for (int i = 0; i < 8; i++)
+    {
+        RayHit hit = Trace(ray);
+        result += ray.energy * Shade(ray, hit);
+
+        if (!any(ray.energy))
+            break;
+    }
+
+    Result[id.xy] = float4(result, 1);
+}
