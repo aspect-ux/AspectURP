@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////////
-///Aspect NPR Shader for Anime Characters,replication of Genshin and GGS(GGXrd)///
+///Aspect NPR Shader for Anime Characters,replicate of Genshin and GGS(GGXrd)///
 //@author: aspect_ux
 //@file: AspectURP/Aspect_NPR_Character
 //@date: 2023/12/25
@@ -66,6 +66,10 @@ Shader "AspectURP/Aspect_NPR_Character"
         _RimLightBias ("Rim Light Bias",range(0,20)) = 0
         _RimLightAlbedoMix ("Albedo Mix (Multiply)", Range(0, 1)) = 0.5
         _RimLightSmoothstep ("Smoothstep", Range(0, 1)) = 0
+
+        [Header(Emission)]
+        _EmissionIntensity ("Emission Intensity",RANGE(0,1)) = 0.2
+        _EmissionColor ("Emission Color",Color) = (1,1,1,1)
 
         _FresnelScale ("Fresnel Scale",Range(0,1)) = 0.5
         _FresnelPower ("Fresnel Power",Range(0,20)) = 5 
@@ -240,8 +244,8 @@ Shader "AspectURP/Aspect_NPR_Character"
             float3 worldNormal : TEXCOORD6;
             float3 worldTangent : TANGENT;
         };
-            /*
-         //头发
+        /*
+        //头发
         float3 NPR_Hair(float NdotL, float NdotH, float NdotV, float3 nDir, float4 baseColor, float4 var_ParamTex, float _InNight, float _RampMapYRange)
         {
             //头发的rampColor不应该把固定阴影的部分算进去，所以这里固定阴影给定0.5 到计算ramp的时候 *2 结果等于1

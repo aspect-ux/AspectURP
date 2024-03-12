@@ -1,4 +1,5 @@
-Shader "AspectURPR/FAKE_yuanshen"
+// A Character Shader replicate from Honkai Star trail and Genshin Impact
+Shader "AspectURP/FAKE_yuanshen"
 {
     Properties
     {
@@ -62,10 +63,9 @@ Shader "AspectURPR/FAKE_yuanshen"
         [Space(5)]
         _RimIntensity ("Rim Light Intensity",Range(0,10)) = 8
         _RimRadius ("Rim Light Radius",Range(0,20)) = 0
-        //_RimLightColor ("Rim Color",Color) = (1,1,1,1)
-        //_RimLightBias ("Rim Light Bias",range(0,20)) = 0
-        //_RimLightAlbedoMix ("Albedo Mix (Multiply)", Range(0, 1)) = 0.5
-        //_RimLightSmoothstep ("Smoothstep", Range(0, 1)) = 0
+        _RimLightColor("Rim Light Color",Color) = (1,1,1,1)
+        _RimOffset("RimOffset",range(0,1)) = 0.5
+        _RimThreshold("RimThreshold",range(-1,1)) = 0.5
         
         [Header(Emission)]
         [Space(5)]
@@ -83,10 +83,10 @@ Shader "AspectURPR/FAKE_yuanshen"
         [Space(5)]
         _ShadowArea("Shadow Area",RANGE(0,10)) = 0 
         _DarkShadowArea ("Dark Shadow Area",RANGE(0,10)) = 0
-        _FixDarkShadow ("Fix Dark Shadow",RANGE(0,10)) = 0
+        _FixDarkShadow ("Fix Dark Shadow",RANGE(0,10)) = 0*/
         _ShadowColor ("Shadow Color",Color) = (1,1,1,1)
 
-        _LightThreshold ("Light Threshold",Range(0,10)) = 0.5*/
+        //_LightThreshold ("Light Threshold",Range(0,10)) = 0.5
 
     }
     SubShader
@@ -100,7 +100,6 @@ Shader "AspectURPR/FAKE_yuanshen"
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-        //#include "mylib.hlsl"
 
         #pragma vertex vert
         #pragma fragment frag
@@ -125,10 +124,7 @@ Shader "AspectURPR/FAKE_yuanshen"
         //RimLight
         uniform float _RimIntensity;
         uniform float _RimRadius;
-        /*uniform float4 _RimLightColor;
-        uniform float _RimLightBias;
-        uniform float _RimLightAlbedoMix;
-        uniform float _RimLightSmoothstep;*/
+        uniform float4 _RimLightColor;
 
         //diffuse
         uniform float _FaceDiffuseIntensity;
@@ -174,12 +170,12 @@ Shader "AspectURPR/FAKE_yuanshen"
         //uniform float _FaceShadowOffset;
 
         //SHADOW 
-        /*uniform float _ShadowArea;
-        uniform float _DarkShadowArea;
-        uniform float _FixDarkShadow;
-        uniform float4 _ShadowColor;*/
+        uniform float4 _ShadowColor;
 
         float _LightThreshold;
+
+        half _RimOffset;
+        half _RimThreshold;
 
         CBUFFER_END
 
@@ -187,7 +183,7 @@ Shader "AspectURPR/FAKE_yuanshen"
         TEXTURE2D(_MainTex);        //要注意在CG中只声明了采样器 sampler2D _MainTex,
         SAMPLER(sampler_MainTex); //而在HLSL中除了采样器还有纹理对象，分成了两部分
         TEXTURE2D(_RampTex);     
-        SAMPLER(sampler_RampTex);//
+        SAMPLER(sampler_RampTex);
         TEXTURE2D(_FaceShadowMap);     
         SAMPLER(sampler_FaceShadowMap);
         TEXTURE2D(_LightMap);     
@@ -217,6 +213,7 @@ Shader "AspectURPR/FAKE_yuanshen"
             float3 vDirWS : TEXCOORD3;
             float3 worldPos : TEXCOORD4;
             float3 lightDirWS : TEXCOORD5;
+            float clipW : TEXCOORD6;
             float3 worldTangent : TANGENT;
         };
 
@@ -357,6 +354,7 @@ Shader "AspectURPR/FAKE_yuanshen"
             //Ramp
             float3 tempRampMap = float3(lightAttenuation,lightAttenuation,lightAttenuation);
 
+
             float stepFaceShadowFactor = lightAttenuation > 0?1:0.8;
             //return tempRampMap;
             //float3 rampColor =  GenshinNPR_Ramp(lightAttenuation,lightMap);
@@ -364,8 +362,11 @@ Shader "AspectURPR/FAKE_yuanshen"
             float3 faceShadowColor = lerp(baseColor,baseColor * stepFaceShadowFactor,stepFaceShadowFactor);
             float3 emission = NPR_Emission(baseColor);
             //rampColor = lerp(baseColor,tempRampMap,lightAttenuation);
+           
 
             float3 faceColor = lerp(baseColor,faceShadowColor,stepFaceShadowFactor);
+
+
             return faceColor * _MainLightColor.rgb + emission;
         }
 
@@ -409,6 +410,8 @@ Shader "AspectURPR/FAKE_yuanshen"
                 o.worldPos = TransformObjectToWorld(v.vertex);
                 o.worldTangent = TransformObjectToWorldDir(v.tangent);
                 o.vertexColor = v.vertexColor;
+
+                o.clipW = o.pos.w;
                 return o;
             }
             float4 frag (VertexOutput i) : SV_Target
@@ -478,8 +481,29 @@ Shader "AspectURPR/FAKE_yuanshen"
                     FinalColor = GenshinNPR_Hair(ndotL, ndotH, ndotV, lightDirWS, baseColor, lightMap,metalMap);
                 #endif
 
+
+                // 屏幕空间UV(视口坐标)SV_Position
+                float2 screenParams01 = float2(i.pos.x/_ScreenParams.x,i.pos.y/_ScreenParams.y);
+                float2 offectSamplePos = screenParams01-float2(_RimOffset/i.clipW,0);
+                float offcetDepth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture,sampler_CameraDepthTexture, offectSamplePos);
+                float trueDepth   = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, sampler_CameraDepthTexture,screenParams01);
+                float linear01EyeOffectDepth = Linear01Depth(offcetDepth,_ZBufferParams);
+                float linear01EyeTrueDepth = Linear01Depth(trueDepth,_ZBufferParams);
+                float depthDiffer = linear01EyeOffectDepth-linear01EyeTrueDepth;
+                float rimIntensity = step(_RimThreshold,depthDiffer);
+                float4 col = float4(rimIntensity,rimIntensity,rimIntensity,1) * _RimLightColor;
+
+                float3 fresnelRimLight = GenshinNPR_RimLight(ndotV,ndotL,albedo);
+
+                float3 ans = lerp(col.rgb,fresnelRimLight,0.6);
+
+                //return float4(ans ,1.0);
+
+                //return col;
+
+
                 // 也许面部不需要stepSpecular的高光?
-                return float4(FinalColor + stepSpecular + emission, 1.0);
+                return float4(FinalColor + stepSpecular + emission + ans.rgb, 1.0);
             }
             ENDHLSL
         }
@@ -499,7 +523,7 @@ Shader "AspectURPR/FAKE_yuanshen"
             VertexOutput vert (VertexInput v)
             {
                 VertexOutput o;
-               // 1. 普通法线外扩 View Space 也称作三角面扩张法 过程式几何描边
+                // 1. 普通法线外扩 View Space 也称作三角面扩张法 过程式几何描边
                 //float4 pos = mul (UNITY_MATRIX_MV , v.vertex);
                 //注意法线空间变换的特殊性
                 //float3 normal= mul((float3x3)UNITY_MATRIX_IT_MV, v.normal); 
@@ -510,8 +534,8 @@ Shader "AspectURPR/FAKE_yuanshen"
                 // 2. NDC空间法线方向外扩
                 /*float4 pos = TransformObjectToHClip(v.vertex);
                 float3 viewNormal = mul((float3x3)UNITY_MATRIX_IT_MV, v.normal.xyz);
-                //将法线变换到NDC空间
-                float3 ndcNormal = normalize(mul(UNITY_MATRIX_P,viewNormal.xyz)) * pos.w;
+                //将法线变换到NDC空间  //clamp(0,1)加上后当相机拉远后会减弱看上去黑色描边明显问题，也可以不加;
+                float3 ndcNormal = normalize(mul(UNITY_MATRIX_P,viewNormal.xyz)) * pos.w; //clamp(pos.w, 0, 1);
 
                 //将近裁剪面右上角位置的顶点变换到观察空间
                 float4 nearUpperRight = mul(unity_CameraInvProjection,
@@ -537,9 +561,40 @@ Shader "AspectURPR/FAKE_yuanshen"
             }
             ENDHLSL
         }
+        /*
+        Pass
+        {
+            Name "DepthNormals"
+            Tags{"LightMode" = "DepthNormals"}
+
+            ZWrite On
+            Cull[_Cull]
+
+            HLSLPROGRAM
+            #pragma only_renderers gles gles3 glcore d3d11
+            #pragma target 2.0
+
+            #pragma vertex DepthNormalsVertex
+            #pragma fragment DepthNormalsFragment
+
+            // -------------------------------------
+            // Material Keywords
+            #pragma shader_feature_local _NORMALMAP
+            #pragma shader_feature_local_fragment _ALPHATEST_ON
+            #pragma shader_feature_local_fragment _GlossnessINESS_FROM_BASE_ALPHA
+
+            //--------------------------------------
+            // GPU Instancing
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/SimpleLitInput.hlsl"
+            #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
+            ENDHLSL
+        }*/
 
         
         UsePass "Universal Render Pipeline/Lit/DepthOnly"
+
         UsePass "Universal Render Pipeline/Lit/ShadowCaster"
     }
 
