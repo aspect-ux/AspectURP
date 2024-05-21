@@ -92,7 +92,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AO: 1
+    - _AO: 0.618
     - _AlphaClip: 0
     - _Blend: 0
     - _BumpScale: 1
@@ -103,21 +103,21 @@ Material:
     - _DetailAlbedoMapScale: 1
     - _DetailNormalMapScale: 1
     - _DstBlend: 0
-    - _Emissive: 0
-    - _EmissiveTwinkleFrequence: 1
+    - _Emissive: 3.9
+    - _EmissiveTwinkleFrequence: 0.756
     - _Emissve_Twinkle: 1
     - _EnvironmentReflections: 1
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
     - _Kalos_G_Factor: 1
-    - _Metallic: 1
+    - _Metallic: 0.836
     - _NormalScale: 1
     - _OcclusionStrength: 1
     - _Parallax: 0.005
     - _QueueOffset: 0
     - _ReceiveShadows: 1
-    - _Roughness: 1
+    - _Roughness: 0.5
     - _Smoothness: 0.5
     - _SmoothnessTextureChannel: 0
     - _SpecularHighlights: 1

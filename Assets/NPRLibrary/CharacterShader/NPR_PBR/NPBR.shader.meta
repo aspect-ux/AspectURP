@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: f3a02486edcd4f54b87671c86afbf1c9
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _MainTex: {instanceID: 0}
+  - _NormalTex: {instanceID: 0}
+  - _MaskTex: {instanceID: 0}
+  - _IndirSpecCubemap: {instanceID: 0}
+  - _FaceLightMap: {instanceID: 0}
+  - _RampTex: {instanceID: 0}
+  - _HairSpecTex: {instanceID: 0}
+  - _LightMap: {instanceID: 0}
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,65 +1,43 @@
-﻿Shader "AspectURPR/Toon"
+﻿//@Author: Aspect-ux
+//@Description: This is a universal toon shader based on urp
+// Features
+// 1. BlinnPhong(diffuse + specular + ambient)
+// 2. Multi Lights
+Shader "AspectURP/NPR/Toon"
 {
     Properties
     {
         [Header(ShaderEnum)]
         [KeywordEnum(Base,Others)] _ShaderEnum ("Shader Enum",int) = 1
-        //[Toggle(IN_NIGHT)]_InNight ("is Night?", int) = 0
         [Enum(OFF,0,FRONT,1,BACK,2)] _Cull ("Cull Mode",int) = 1
 
         [Header(BaseMap)]
         _MainTex ("Main Tex",2D) = "white"{}
-        _MainColor ("Main Color",Color) = (1,1,1,1)
+        _BaseColor ("Main Color",Color) = (1,1,1,1)
 
         [Header(Diffuse)]
         _RampTex ("Ramp Tex",2D) = "white"{}
-        /*_RampMapYRange("Rame Y Range",Range(-1,1)) = 1
-        _RampIntensity ("Ramp Intensity",Range(0,1)) = 0.3
-        _FaceDiffuseIntensity ("Face Diffuse Intensity",Range(0,1)) = 0.4
-        [ToggleOff]_isCloth ("isCloth",int) = 0*/
-        
-        /*
-         //face, the same with paramTex
-        _LightMap ("Light Map(for specular :gloss or metal)",2D) = "grey"{}*/
-
+        _RampOffsetX ("Ramp Offset X",Range(-1,1)) = 0.01
+        _RampOffsetY ("Ramp Offset Y",Range(-1,1)) = 0.01
         
         [Header(Specular)]
-        [Header(BasicSpecular)]
         //_SpecularGloss ("Specular Gloss",Range(8.0,256)) = 20
         _SpecularIntensity ("Specular Intensity",Range(0,0.1)) = 0.001
-
-        [Header(Main Lighting Settings)]
-        [ToggleOff] _ReceiveShadow ("Receive Shadow", int) = 1
-        _LightingDirectionFix ("Lighting Direction Fix", Range(0, 1)) = 0
-        _LightingColor ("Lighting Color", Color) = (1, 1, 1)
-        _ShadingColor ("Shading Color", Color) = (0.5, 0.5, 0.5)
-        _DiffuseShadowBias ("Bias", Range(-1, 1)) = 0
-        _DiffuseShadowSmoothstep ("Smoothstep", Range(0, 1)) = 0
-    
-        /*
-        [Header(RimLight)]
-        _RimIntensity ("Rim Light Intensity",Range(0,10)) = 8
-        _RimRadius ("Rim Light Radius",Range(0,20)) = 0
-        
-        [Header(Emission)]
-        _EmissionIntensity("Emission Intensity",Range(0,255)) = 1
-        [HDR]_EmissionColor("Emission Color",Color) = (1,1,1,1)*/
-
+        _SpecularColor("Specular Color",COLOR) = (1,1,1,1)
 
         [Header(Outline(Sihouetting))]
         _OutlineColor("OutLine Color",Color) = (0,0,0,1)
         _OutlineWidth("Outline Width",Range(0,1)) = 0.1
 
-        /*
-        [Header(ShadowCast)]
-        [Space(5)]
-        _ShadowArea("Shadow Area",Range(0,10)) = 0 
-        _DarkShadowArea ("Dark Shadow Area",RANGE(0,10)) = 0
-        _FixDarkShadow ("Fix Dark Shadow",RANGE(0,10)) = 0
-        _ShadowColor ("Shadow Color",Color) = (1,1,1,1)
-
-        _LightThreshold ("Light Threshold",Range(0,10)) = 0.5*/
-
+        [Header(Customed Main Lighting Settings)]
+        [ToggleOff] _ReceiveShadow ("Receive Shadow", int) = 1
+        _LightingDirectionFix ("Lighting Direction Fix", Range(0, 1)) = 0
+        _LightColor ("Lighting Color", Color) = (1, 1, 1)
+        _ShadingColor ("Shading Color", Color) = (0.5, 0.5, 0.5)
+        _DiffuseShadowBias ("Bias", Range(-1, 1)) = 0
+        _DiffuseShadowSmoothstep ("Smoothstep", Range(0, 1)) = 0
+    
+        
     }
     SubShader
     {
@@ -72,7 +50,6 @@
         HLSLINCLUDE
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
         #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Lighting.hlsl"
-        //#include "mylib.hlsl"
 
         #pragma vertex vert
         #pragma fragment frag
@@ -91,23 +68,24 @@
         //Shadow
         int _ReceiveShadow;
         float _LightingDirectionFix;
-        float3 _LightingColor;
+        float3 _LightColor;
         float3 _ShadingColor;
         float _DiffuseShadowSmoothstep;
         float _DiffuseShadowBias;
 
         //BaseMap
         float4 _MainTex_ST;  //要注意纹理不能放在缓冲区
-        float4 _MainColor;
+        float4 _BaseColor;
         float4 _RampTex_ST;
+        float4 _SpecularColor;
        
         //RimLight
         uniform float _RimIntensity;
         uniform float _RimRadius;
 
         //diffuse
-        uniform float _FaceDiffuseIntensity;
-        uniform float _RampMapYRange;
+        float _RampOffsetX;
+        float _RampOffsetY;
 
         //Specualr
         uniform float4 _MetalColor;
@@ -117,11 +95,7 @@
         uniform float _MetalIntensity;
         uniform float _MetalMapV;
 
-        //Emission
-        //uniform float _EmissionIntensity;
-        //uniform float4 _EmissionColor;
-
-        //Sihouetting
+        //Outline
         uniform float4 _OutlineColor;
         uniform float _OutlineWidth;
 
@@ -186,11 +160,9 @@
             {
                 VertexOutput o = (VertexOutput)0; // 新建输出结构
                 ZERO_INITIALIZE(VertexOutput, o); //初始化顶点着色器
-                //o.pos = mul(UNITY_MATRIX_MVP,v.vertex);
                 o.pos = TransformObjectToHClip(v.vertex);
                 //o.uv = TRANSFORM_TEX(v.uv,_MainTex);
                 o.uv = v.uv;
-                //o.uv = float2(o.uv.x, 1 - o.uv.y);
                 o.nDirWS = TransformObjectToWorldNormal(v.normal);
                 o.worldPos = TransformObjectToWorld(v.vertex);
                 o.worldTangent = TransformObjectToWorldDir(v.tangent);
@@ -207,17 +179,15 @@
                 //Light mainLight = GetMainLight(TransformWorldToShadowCoord(i.worldPos));
 
                 float3 nDirWS = normalize(i.nDirWS);
-                //float3 lightColor = mainLight.color;
                 float3 lightDirWS = normalize(mainLight.direction);
                 float3 vDirWS = normalize(GetCameraPositionWS().xyz - i.worldPos);
                 float3 halfDirWS = normalize(lightDirWS + vDirWS);
                 float3 tangentDir = normalize(i.worldTangent);
 
                 //prepare dot product
-                //if less than 0,then it will be wrong in light dir
                 float ndotL = max(0,dot(nDirWS,lightDirWS)); 
                 float ndotH = max(0,dot(nDirWS,halfDirWS));
-                ndotH = dot(nDirWS,halfDirWS);
+                ndotH = dot(nDirWS,halfDirWS);//want saturate?
                 float ndotV = saturate(dot(nDirWS,vDirWS));
                 float hdotT = max(dot(halfDirWS,tangentDir),0); //切线点乘半角
                 float halfLambert = dot(nDirWS,lightDirWS) * 0.5 + 0.5;
@@ -230,7 +200,7 @@
                 float linear01ShadowFactor = floatLerp(1, MainLightRealtimeShadow(i.shadowCoord), _ReceiveShadow);
                 float linear01LightingFactor = linear01DiffuseFactor * linear01ShadowFactor;
                 float linear01ShadingFactor = 1 - linear01LightingFactor;
-                float3 finalDiffuseColor = _LightingColor * linear01LightingFactor + _ShadingColor * linear01ShadingFactor;
+                float3 finalDiffuseColor = _LightColor * linear01LightingFactor + _ShadingColor * linear01ShadingFactor;
                 //-------结束主光源光照计算-------
                 
                 //-------次级光源光照计算-------
@@ -245,21 +215,31 @@
                 }
                 //-------结束次级光源光照计算-------
 
-                //sample
+                //sample textures
                 float4 baseColor = SAMPLE_TEXTURE2D(_MainTex,sampler_MainTex,i.uv);
-                float4 rampColor = SAMPLE_TEXTURE2D(_RampTex,sampler_RampTex,float2(halfLambert,halfLambert));
+
+                // Ramp Tex, change params to sample your own tex
+                float4 rampColor = SAMPLE_TEXTURE2D(_RampTex,sampler_RampTex,float2(halfLambert + _RampOffsetX,halfLambert + _RampOffsetY));
+
+                // Light Model
                 float3 albedo = baseColor * _MainLightColor.rgb;
 
-                //float3 diffuse = halfLambert > _ShadowRange ? _MainColor : _ShadowColor;
-                float3 diffuse = _MainLightColor.rgb * albedo * rampColor.rgb * _MainColor.rgb;
+                // 1. Diffuse
+                //float3 diffuse = halfLambert > _ShadowRange ? _BaseColor : _ShadowColor;
+                float3 diffuse = albedo * rampColor.rgb * _BaseColor.rgb;
 
+                // 2. Specular
 				float w = fwidth(ndotH) * 2.0;
-				float3 specular = lerp(0, 1, smoothstep(-w, w, ndotH + _SpecularIntensity - 1)) * step(0.0001, _SpecularIntensity);
+				float3 specular = lerp(0, 1, smoothstep(-w, w, ndotH + _SpecularIntensity - 1)) * step(0.0001, _SpecularIntensity) * _SpecularColor;
 
-                specular = float3(0,0,0);
+                // 3. Ambient
                 float3 ambient = UNITY_LIGHTMODEL_AMBIENT.xyz * albedo;
 
-                return float4(baseColor.rgb * float3(finalDiffuseColor + specular + ambient),1.0);
+                // Basic Toon
+                return float4(diffuse + ambient + specular, 1.0);
+
+                // Stylized Toon
+                //return float4(finalDiffuseColor + specular + ambient),1.0);
             }
             ENDHLSL
         }
@@ -299,6 +279,10 @@
         UsePass "Universal Render Pipeline/Lit/ShadowCaster"
 
         /*
+        // 专门用于渲染场景深度的Pass,不会渲染光照纹理等信息。
+        // 1. Early-Z
+        // 2. Shadow Mapping, 用于生成深度图
+        // 3. 优化，复杂场景中只渲染深度信息更快
         Pass
         {
             Name "DepthOnly"
@@ -330,6 +314,11 @@
             ENDHLSL
         }*/
 
+        /*
+        // 适用于需要深度和表面法线两种信息的情况
+        // 1. DGI (Dynamic Global Illuminance)
+        // 2. SSAO (Screen-Space Ambient Occlusion) / OSAO(Object-Space)
+        // 3. Post-Process,水面反射等
         Pass
         {
             Name "DepthNormals"
@@ -359,7 +348,7 @@
             #include "Packages/com.unity.render-pipelines.universal/Shaders/DepthNormalsPass.hlsl"
             ENDHLSL
         }
-
+        */
         
         UsePass "Universal Render Pipeline/Lit/DepthOnly"
         
