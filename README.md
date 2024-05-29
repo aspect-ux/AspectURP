@@ -55,13 +55,13 @@ Non-Photorealistic Rendering
 
 ### 3. 次表面散射效果(玉石，皮肤效果)
 
-玉石效果
+左：伪次表面散射；右：Wrap Lighting
 
-**左边是伪次表面散射，右边是基于Wrap Lighting的次表面散射(penetration depth实时计算出来)**
+![2024-05-26-01-50-09_converted](Readme/Jade.gif)
 
 皮肤效果，使用预积分的方法计算次表面散射
 
-//TODO:
+
 
 ### 4. Snow&ICE(雪&冰渲染)
 
@@ -77,21 +77,17 @@ Non-Photorealistic Rendering
 
 ![image-20240530005637396](Readme/SSPR.png)
 
-### 6. 次表面散射(玉石与皮肤)
 
-左：伪次表面散射；右：Wrap Lighting
 
-![2024-05-26-01-50-09_converted](Readme/Jade.gif)
-
-### 7. Ray Marching体积云
+### 6. Ray Marching体积云
 
 ![2](Readme/VolumetricCloud.gif)
 
-### 8. Stylized Water(风格化水体)
+### 7. Stylized Water(风格化水体)
 
 ![3](Readme/stylizedWater.gif)
 
-## 9. Post Processing With URP
+## 8. Post Processing With URP
 
 My another Repo: [aspect-ux/Mini-PostProcessing: a mini post processing system based on urp (github.com)](https://github.com/aspect-ux/Mini-PostProcessing)
 
