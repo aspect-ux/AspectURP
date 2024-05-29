@@ -54,7 +54,7 @@ Shader "AspectURP/NPBR"
         //[FoldoutBegin(_FoldoutHairSpecEnd)]
         //_FoldoutHairSpec("HairSpec", float) = 0
 			[NoScaleOffset]_HairSpecTex	("HairSpecTex", 2D)          			= "black" {}
-			[HDR]_SpecColor				("SpecColor", color)					= (0.5, 0.5, 0.5, 0)
+			[HDR]_BaseSpecColor				("SpecColor", color)					= (0.5, 0.5, 0.5, 0)
             _AnisotropicSlide			("AnisotropicSlide", Range(-0.5, 0.5))	= 0.3
 			_AnisotropicOffset			("AnisotropicOffset", Range(-1.0, 1.0))	= 0.0
 			_BlinnPhongPow				("BlinnPhongPow", Range(1, 50))			= 5
@@ -186,7 +186,7 @@ Shader "AspectURP/NPBR"
         half3 _NoseSpecular;//TODO:temp for storing specular
 
         // HairSpec
-        half4 _SpecColor;
+        half4 _BaseSpecColor;
         half _AnisotropicSlide;
         half _AnisotropicOffset;
         half _BlinnPhongPow;
@@ -472,7 +472,7 @@ Shader "AspectURP/NPBR"
                     float anisotropicOffsetV = - vDirWS.y * _AnisotropicSlide + _AnisotropicOffset;
                     half3 hairSpecTex = SAMPLE_TEXTURE2D(_HairSpecTex, sampler_LinearClamp, float2(i.uv.z, i.uv.w + anisotropicOffsetV));
                     float hairSpecStrength = _SpecMinimum + pow(ndotH, _BlinnPhongPow) * specArea;
-                    half3 hairSpecColor = hairSpecTex * _SpecColor * hairSpecStrength;
+                    half3 hairSpecColor = hairSpecTex * _BaseSpecColor * hairSpecStrength;
                     extraSpecular = hairSpecColor;
                 #elif _SHADERENUM_EYE
                 //TODO:Parallax

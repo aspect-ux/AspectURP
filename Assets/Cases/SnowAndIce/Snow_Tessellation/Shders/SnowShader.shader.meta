@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: 2da3da572e55fbb45abc6db27996c599
+ShaderImporter:
+  externalObjects: {}
+  defaultTextures:
+  - _Splatmap: {instanceID: 0}
+  - _SnowTex: {instanceID: 0}
+  - _GroundTex: {instanceID: 0}
+  nonModifiableTextures: []
+  preprocessorOverride: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

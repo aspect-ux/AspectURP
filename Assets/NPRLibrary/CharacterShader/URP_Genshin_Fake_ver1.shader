@@ -1,4 +1,4 @@
-// A Character Shader replicate from Honkai Star trail and Genshin Impact
+// A Character Shader replicate of Honkai Star trail and Genshin Impact
 Shader "AspectURP/FAKE_yuanshen"
 {
     Properties
@@ -340,7 +340,7 @@ Shader "AspectURP/FAKE_yuanshen"
         //=======================Output for Character===============================
 
         //【StarTrail】 use Hanya as model
-         float3 StarTrailNPR_Ramp(float ndotL,float4 lightMap)
+        float3 StarTrailNPR_Ramp(float ndotL,float4 lightMap)
         {
             // 分成cool 和 warm两种气候
             // lightmap.g存储了AO

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: DepthFogMaterial
+  m_Shader: {fileID: 4800000, guid: a4df6c0be620fe14a818cd7c18bd74df, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _CameraTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _BottomPlane: -10
+    - _FarPlane: 150
+    - _FogIntensity: 20
+    - _LightFocus: 10
+    - _LightIntensity: 8
+    - _MaxOpacity: 0.229
+    - _NearPlane: 0.3
+    - _TopPlane: 300
+    - _UseExponential: 0
+    - _VerticalGradient: 1
+    - _VerticalWeight: 0
+    m_Colors:
+    - _CameraPos: {r: 3.66, g: 0.97, b: -0.49, a: 0}
+    - _FogColor: {r: 0.6745098, g: 0.90196085, b: 1, a: 1}
+  m_BuildTextureStacks: []

@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e0928bb79f34d3f4383025690645f3b9, type: 3}
+  m_Name: DepthRenderer
+  m_EditorClassIdentifier: 
+  debugShaders:
+    debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
+  m_RendererFeatures:
+  - {fileID: 817937322173396648}
+  m_RendererFeatureMap: a8f6ad30a9e5590b
+  m_UseNativeRenderPass: 0
+  m_OpaqueLayerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+--- !u!114 &817937322173396648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d432176aa47ff97498d117328225d898, type: 3}
+  m_Name: DepthRendererFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  settings:
+    renderPassEvent: 300
+    depthMat: {fileID: 2100000, guid: df1832f6a0d734a459fe70c5fac465c5, type: 2}
+    sssMat: {fileID: 2100000, guid: 940fc900f30f254459a718ca7d6f0768, type: 2}
+    renderTexture: {fileID: 8400000, guid: a988975a85978f2439889e09ef7d1c06, type: 2}

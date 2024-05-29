@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: AspectURP_NPBR
+  m_Shader: {fileID: 4800000, guid: f3a02486edcd4f54b87671c86afbf1c9, type: 3}
+  m_ValidKeywords:
+  - _SHADERENUM_CLOTH
+  m_InvalidKeywords:
+  - _SHADERENUM_NPR_BASE
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FaceLightMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HairSpecTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _IndirSpecCubemap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RampTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AO: 0.01
+    - _AnisotropicOffset: 0
+    - _AnisotropicSlide: 0.3
+    - _BlinnPhongPow: 5
+    - _Cull: 1
+    - _Cutoff: 0.5
+    - _DirectOcclusion: 0.1
+    - _EmissionIntensity: 1
+    - _FriColorMask: 0
+    - _FriStencil: 0
+    - _FriStencilComp: 6
+    - _FriStencilOp: 0
+    - _FriStencilReadMask: 0
+    - _FriStencilWriteMask: 0
+    - _INDIRECT_CUBEMAP: 0
+    - _IndirectSpecLerp: 0.1
+    - _Metallic: 0.01
+    - _NormalScale: 1
+    - _NoseSpecMax: 0.5
+    - _NoseSpecMin: 0
+    - _NoseSpecSlider: 0
+    - _ONLY_DIRECT: 0
+    - _ONLY_INDIRECT: 0
+    - _OutlineWidth: 0.1
+    - _ParallaxMaskEdge: 0.8
+    - _ParallaxMaskEdgeOffset: 0.2
+    - _ParallaxScale: 1
+    - _RampIntensity: 0.3
+    - _RampOffset: 0.1
+    - _RampYRange: 1
+    - _RimIntensity: 8
+    - _RimLightWidth: 0.2
+    - _RimOffset: 0.5
+    - _RimRadius: 0
+    - _RimThreshold: 0.5
+    - _Roughness: 0.01
+    - _ScreenOffsetScaleX: 1
+    - _ScreenOffsetScaleY: 1
+    - _ShaderEnum: 1
+    - _ShadowOffset: 0.1
+    - _ShadowSmooth: 0
+    - _ShadowStrength: 1
+    - _SpecMinimum: 0.1
+    - _USE_NORMALTEX: 0
+    - _UseRampTex: 0
+    m_Colors:
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EnvironmentColor: {r: 1, g: 1, b: 1, a: 1}
+    - _NoseSpecColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0, g: 0, b: 0, a: 1}
+    - _RimColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShadowColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SpecularColor: {r: 0.5, g: 0.5, b: 0.5, a: 0}
+  m_BuildTextureStacks: []
