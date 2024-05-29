@@ -34,17 +34,17 @@ Material:
     - _BladeWidth: 0.05
     - _BladeWidthRandom: 0.02
     - _DistanceDetail: 0
-    - _Height: 0.8
-    - _RandomHeight: 0.1
-    - _RandomWidth: 0.12
-    - _TessellationUniform: 5.85
+    - _Height: 0.5
+    - _RandomHeight: 0.05
+    - _RandomWidth: 0.1
+    - _TessellationUniform: 7.74
     - _TranslucentGain: 0.305
     - _Width: 0.1
     - _WindStrength: 1
     m_Colors:
     - _BottomColor: {r: 0.3924663, g: 0.49056602, b: 0.15457456, a: 1}
-    - _Color: {r: 0.2, g: 0.8, b: 0.5, a: 1}
-    - _Color2: {r: 0.5, g: 0.9, b: 0.6, a: 1}
+    - _Color: {r: 0.5566928, g: 0.7075472, b: 0.63714844, a: 1}
+    - _Color2: {r: 0, g: 0.54758453, b: 0.7169812, a: 1}
     - _TopColor: {r: 0.41237018, g: 0.6603774, b: 0.38875043, a: 1}
     - _WindFrequency: {r: 0.05, g: 0.05, b: 0, a: 0}
   m_BuildTextureStacks: []

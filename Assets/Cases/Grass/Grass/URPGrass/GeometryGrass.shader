@@ -1,5 +1,4 @@
 
-// @Cyanilux
 Shader "Unlit/GeoGrass" {
 	Properties {
 		_Color ("Colour", Color) = (0.2,0.8,0.5,1)

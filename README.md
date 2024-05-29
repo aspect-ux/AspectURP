@@ -5,20 +5,6 @@ My URP Learning Repository. 暂时将有一定工作量的效果放在这个仓�
 
 # Contents
 
-## Real-time Rendering cases
-
-### 1. Shadow
-
-### 2. AO
-
-### 3. Ray Tracing
-
-![raytracing](Readme/raytracing_rabi.gif)
-
-### 4. GI
-
-## Unity shader cases(Toys)
-
 ### **1. PBR Shader**(基于物理渲染的Shader)
 
 Physically Based Rendering
@@ -26,6 +12,10 @@ Physically Based Rendering
 左图为Customed,右图为Unity自带。左图额外添加了闪烁的自发光，并使用了Reflection Probe。
 
 ![2024-05-21-21-12-18_converted](Readme/pbr_shader.gif)
+
+Ray Tracing on cpu
+
+![raytracing](Readme/raytracing_rabi.gif)
 
 ### **2. NPR(非真实感渲染)**
 
@@ -79,55 +69,37 @@ Non-Photorealistic Rendering
 
 ![2024-05-23-11-44-10_converted](Readme/snow.gif)
 
-### 5. Simulation(模拟)
+几何着色器+曲面细分草地
 
-绳子，布料
+![grass](Readme/grass.gif)
 
-### 6. Simple Animation(Shader 动画)
+### 5. 屏幕空间反射SSPR
 
-序列帧，uv动画，顶点动画(暂定将简单的效果放在另一个仓库，用于基础案例，拿来即用)
+![image-20240530005637396](Readme/SSPR.png)
 
-### 7. 流麻
+### 6. 次表面散射(玉石与皮肤)
 
-### 8. 镭射材质
+左：伪次表面散射；右：Wrap Lighting
 
-### 9. Black Silk(黑丝材质)
+![2024-05-26-01-50-09_converted](Readme/Jade.gif)
 
-### 10. Genster Wave(水体)
+### 7. Ray Marching体积云
 
-### 11. Water Magic(水魔法)
+![2](Readme/VolumetricCloud.gif)
 
-水涟漪，液体模拟，屏幕水滴
+### 8. Stylized Water(风格化水体)
 
-### 11. Grass(草地)-后置
+![3](Readme/stylizedWater.gif)
 
-### 12. 其它效果
-
-### 13. 星体渲染
-
-### 14. 管道流动
-
-### 转场特效-后置
-
-### 反射效果
-
-### 风格化影子
-
-[Unity中的反射效果（基于URP） - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/626597575)
-
-
-
-[[Unity Shader\] 模拟管道流动效果（程序向） - 知乎 (zhihu.com)](https://zhuanlan.zhihu.com/p/688795740)
-
-## Post Processing With URP
+## 9. Post Processing With URP
 
 My another Repo: [aspect-ux/Mini-PostProcessing: a mini post processing system based on urp (github.com)](https://github.com/aspect-ux/Mini-PostProcessing)
 
-### Rendering Tools
 
-# Schedule
 
-27，28两天完成
+# TODOLists:
+
+//TODO:
 
 **渲染Part**
 
@@ -139,25 +111,4 @@ My another Repo: [aspect-ux/Mini-PostProcessing: a mini post processing system b
 6. 星空，星体，宇宙
 7. 溶解效果，各种结合，hologramic
 8. 几何细分snow,grass
-9. //TODO:其它待定
 
-**天气系统**
-
-* 归纳，ppt，绘图
-* 性能优化，代码整理，github
-
-**Houdini Part**
-
-* 地形，河流常规案例
-* 城市程序化生成
-
-**个人引擎整理**
-
-* opengl/dx11回顾
-
-# Reference Lists
-
-* NPR
-  * [candycat1992/NPR_Lab: :pencil2: Test some NPR in Unity. (github.com)](https://github.com/candycat1992/NPR_Lab)
-  * [przemyslawzaworski/Unity3D-CG-programming: Various shaders. (github.com)](https://github.com/przemyslawzaworski/Unity3D-CG-programming)
-  * [UnityChanToonShaderVer2_Project/Assets/Toon/Shader at release/legacy/2.0 · unity3d-jp/UnityChanToonShaderVer2_Project (github.com)](https://github.com/unity3d-jp/UnityChanToonShaderVer2_Project/tree/release/legacy/2.0/Assets/Toon/Shader)

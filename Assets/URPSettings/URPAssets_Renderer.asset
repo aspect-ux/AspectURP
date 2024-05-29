@@ -61,8 +61,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugShaders:
     debugReplacementPS: {fileID: 4800000, guid: cf852408f2e174538bcd9b7fda1c5ae7, type: 3}
-  m_RendererFeatures: []
-  m_RendererFeatureMap: 
+  m_RendererFeatures:
+  - {fileID: 5856552124282435245}
+  m_RendererFeatureMap: adf669b020a74651
   m_UseNativeRenderPass: 0
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   xrSystemData: {fileID: 11400000, guid: 60e1133243b97e347b653163a8c01b64, type: 2}
@@ -99,3 +100,23 @@ MonoBehaviour:
   m_ClusteredRendering: 0
   m_TileSize: 32
   m_IntermediateTextureMode: 1
+--- !u!114 &5856552124282435245
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfc91e8b263dc05498830d51987c7573, type: 3}
+  m_Name: ScreenSpacePlaneReflectionRenderFeature
+  m_EditorClassIdentifier: 
+  m_Active: 1
+  Setting:
+    CmdName: "\u5C4F\u5E55\u7A7A\u95F4\u5E73\u9762\u53CD\u5C04"
+    ShouldRenderSSPR: 1
+    SsprComputerShader: {fileID: 7200000, guid: 45a9c11b219987c4b8f20dde54c40988, type: 3}
+    RT_height: 559
+    TintColor: {r: 1, g: 1, b: 1, a: 1}
+    EventPlugIn: 500

@@ -1,0 +1,301 @@
+﻿
+#include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+#define NUMTHREAD_X 8
+#define NUMTHREAD_Y 8
+
+#define MAX_UINT 4294967295
+
+float _FadeOutScreenBorderWidthVerticle;
+float _FadeOutScreenBorderWidthHorizontal; //compute shader can't declare half type input, so use float
+
+float2 _RTSize;
+float _ReflectPlaneHeight;
+float3 _CameraDirection;
+float4 _FinalTintColor;
+
+float4x4 _VPMatrix;
+float4x4 _IVPMatrix;
+
+Texture2D<half4> _CameraOpaqueTexture;
+Texture2D<float> _CameraDepthTexture;
+RWTexture2D<half4> ColorRT;
+RWTexture2D<uint> HashRT;
+RWTexture2D<half4> _TempTexture;
+
+SamplerState PointClampSampler; //像素采样，clamp类型
+SamplerState LinearClampSampler; //模糊采样，clamp类型
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Util Functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+half sdfCube(half2 pos)
+{
+    half2 dis = abs(pos) - half2(1, 1);
+    return length(max(dis, 0.0)) - min(max(dis.x, dis.y), 0.0);
+}
+
+float4 ConvertScreenIDToPosWS(uint2 id)
+{
+	////input id is compute function's input SV_DispatchThreadID
+ //   float2 screenUV = float2(id.x / (_RTSize.x), id.y / (_RTSize.y)); //[0,RTSize-1] -> screen [0,1] uv
+ //   float inputPixelRawDepth = _CameraDepthTexture.SampleLevel(PointClampSampler, screenUV, 0); //get rawDepth(posCS.z) in _CameraDepthTexture
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+	////convert screenUV & _CameraDepthTexture's rawDepth(posCS.z) to posWS
+	////https://github.com/Steven-Cannavan/URP_ScreenSpacePlanarReflections/blob/master/Assets/Shaders/ReflectionShader.compute#L75
+	//////////////////////////////////////////////////////////////////////////////////////////////////////
+ //   float4 posCS = float4(screenUV * 2.0 - 1.0, inputPixelRawDepth, 1.0); //reconstruct posCS using screen [0,1] uv & rawDepth
+ //   float4 posHWS = mul(UNITY_MATRIX_I_VP, posCS); //posCS -> posHWS 投影空间->齐次剪裁空间
+ //   float3 posWS = posHWS.xyz / posHWS.w; //posHWS -> posWS 获得世界坐标
+	//_TempTexture[id.xy] = posHWS;// half4(inputPixelRawDepth, 0, 0, 1);
+ //   return posWS;
+
+	//input id is compute function's input SV_DispatchThreadID
+	float2 screenUV = float2(id / _RTSize); //[0,RTSize-1] -> screen [0,1] uv
+	//screenUV.y = 1 - screenUV.y;
+	half inputPixelRawDepth = _CameraDepthTexture.SampleLevel(PointClampSampler, screenUV, 0);
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//convert screenUV & _CameraDepthTexture's rawDepth(posCS.z) to posWS
+	//https://github.com/Steven-Cannavan/URP_ScreenSpacePlanarReflections/blob/master/Assets/Shaders/ReflectionShader.compute#L75
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	float4x4 _IVP2 = transpose(_IVPMatrix);
+	_IVP2[1] *= -1; //将y部分的颜色位置反转过来
+	_IVP2 = transpose(_IVP2);
+	float4 posCS = float4(screenUV.xy * 2.0 - 1.0, inputPixelRawDepth, 1.0); //reconstruct posCS using screen [0,1] uv & rawDepth
+	float4 posHWS = mul(_IVP2, posCS); //posCS -> posHWS 投影空间->齐次剪裁空间
+	float3 posWS = posHWS.xyz / posHWS.w; //posHWS -> posWS 获得世界坐标
+
+	return float4(posWS, inputPixelRawDepth);
+}
+
+//对Y轴进行反转
+float3 MirrorPosWS(float3 inputPosWS)
+{
+    float3 reflectedPosWS = inputPosWS;
+    reflectedPosWS.y -= _ReflectPlaneHeight;
+    reflectedPosWS.y *= -1; //进行翻转
+    reflectedPosWS.y += _ReflectPlaneHeight;
+
+    return reflectedPosWS;
+}
+
+float2 ConvertReflectedPosWSToScreenUV(float3 reflectedPosWS)
+{
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//find reflected posWS's new screenUV
+	//https://github.com/Steven-Cannavan/URP_ScreenSpacePlanarReflections/blob/master/Assets/Shaders/ReflectionShader.compute#L87
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+    float4 reflectedPosCS = mul(_VPMatrix, float4(reflectedPosWS, 1)); //posWS -> posCS
+    float2 reflectedPosNDCxy = reflectedPosCS.xy / reflectedPosCS.w; //posCS -> posNDC
+
+    float2 reflectedScreenUV = reflectedPosNDCxy * 0.5 + 0.5; //posNDC -> screen [0,1] uv, don't saturate() to allow  out of bound access early exit
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//fix left right missing geometry 
+	//ref: http://remi-genin.fr/blog/screen-space-plane-indexed-reflection-in-ghost-recon-wildlands/#filling-the-gaps-jump
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//sample code from http://remi-genin.fr/blog/screen-space-plane-indexed-reflection-in-ghost-recon-wildlands/#filling-the-gaps-jump
+	/*
+	float HeightStretch = (PosWS.z - WaterHeight);
+	float AngleStretch = saturate(- CameraDirection.z);
+	float ScreenStretch = saturate(abs(ReflPosUV.x * 2 - 1) - Threshold);
+
+	ReflPosUV.x *= 1 + HeightStretch * AngleStretch * ScreenStretch * Intensity;
+	*/
+
+	//TODO: better fill LeftRight ，先不做优化
+    float Threshold = 0;
+    float Intensity = 0;
+
+    float HeightStretch = (abs(reflectedPosWS.y - _ReflectPlaneHeight));
+    float AngleStretch = (-_CameraDirection.y);
+    float ScreenStretch = saturate(abs(reflectedScreenUV.x * 2 - 1) - Threshold);
+
+    reflectedScreenUV.x = reflectedScreenUV.x * 2 - 1;
+    reflectedScreenUV.x *= 1 + HeightStretch * AngleStretch * ScreenStretch * Intensity;
+    reflectedScreenUV.x = saturate(reflectedScreenUV.x * 0.5 + 0.5);
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//flip UV according to platform 
+	//ref: https://github.com/Steven-Cannavan/URP_ScreenSpacePlanarReflections/blob/master/Assets/Shaders/ReflectionShader.compute#L95
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+#if UNITY_UV_STARTS_AT_TOP
+	reflectedScreenUV.y = 1.0 - reflectedScreenUV.y;
+#endif
+
+    return reflectedScreenUV;
+}
+
+half ConvertOpaqueColorRTScreenUVToFadeAlphaParam(float2 screenUV, float reflectedPosWSy)
+{
+	//fadeout  using vertical uv.y (only fadeout if reaching _CameraOpaqueTexture's uv border top)
+    half fadeoutAlpha = smoothstep(1, 1 - _FadeOutScreenBorderWidthVerticle, screenUV.y);
+	//fadeout using horizontal uv.x
+	//TODO: better fadeout
+    fadeoutAlpha *= smoothstep(1, 1 - _FadeOutScreenBorderWidthHorizontal * -reflectedPosWSy, abs(screenUV.x * 2 - 1));
+    return fadeoutAlpha;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// kernel: NonMobilePathClear
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma kernel PathClear
+
+[numthreads(NUMTHREAD_X, NUMTHREAD_Y, 1)]
+void PathClear(uint3 id : SV_DispatchThreadID)
+{
+    HashRT[id.xy] = MAX_UINT; //max value as clear, because we want to sort by InterlockedMin()
+    ColorRT[uint2(id.xy)] = half4(0, 0, 0, 0);
+	_TempTexture[id.xy] = half4(0,0,0,0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// kernel: NonMobilePathRenderHashRT
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma kernel PathRenderHashRT
+
+[numthreads(NUMTHREAD_X, NUMTHREAD_Y, 1)]
+void PathRenderHashRT(uint3 id : SV_DispatchThreadID)
+{
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//ConvertScreenIDToPosWS
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+    float4 posWS = ConvertScreenIDToPosWS(id);
+	
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//if posWS is already under reflection plane (e.g. under water plane), 
+	//it will never be a correct color to reflect anyway, early exit to prevent wrong result write to Color RT
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+    if (posWS.w < 0.00000001 || posWS.y <= _ReflectPlaneHeight)
+        return;
+	//_TempTexture[id.xy] = half4(0, 1, 0, 1);
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//mirror posWS according to horizontal reflection plane (e.g. water plane)
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+    float3 reflectedPosWS = MirrorPosWS(posWS.xyz);
+	//reflectedPosWS.y += 2*_ReflectPlaneHeight;
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//ConvertReflectedPosWSToScreenID
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+    float2 reflectedScreenUV = ConvertReflectedPosWSToScreenUV(reflectedPosWS);
+	
+	//early exit if not valid uv anymore, to avoid out of bound access
+    //float2 earlyExitTest = abs(reflectedScreenUV - 0.5);
+    //if (earlyExitTest.x >= 0.5 || earlyExitTest.y >= 0.5)
+    //    return;
+    uint2 reflectedScreenID = reflectedScreenUV * _RTSize; //from screen uv[0,1] to [0,RTSize-1]
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	//write "original RT position ID.xy and alpha" as "12bit yID,12bit xID, 8bit alpha" hash at location "reflected RT position"
+	////////////////////////////////////////////////////////////////////////////////////////////////////
+	/*
+	ref: http://remi-genin.fr/blog/screen-space-plane-indexed-reflection-in-ghost-recon-wildlands/#hash-resolve-jump
+	Read-write max when accessing the projection hash UAV
+
+	//sample code from above site, "Hash resolve" section
+	uint projectionHash = SrcPosPixel.y << 16 | SrcPosPixel.x; 
+	InterlockedMax(ProjectionHashUAV[ReflPosPixel], projectionHash, dontCare);
+	*/
+
+	//ghost-recon-wildlands method use 16bit y, 16bit x encode
+	//but in our implementation, 16bit is overkill because we don't need a RT that is 65536*65536
+	//instead we save 8 bits for fadeout alpha info, result in:
+	//-first 12 bits for id.y (0~4095)
+	//-then  12 bits for id.x (0~4095)
+	//-last  8  bits for alpha (0~255)
+    float2 screenUV = id.xy / _RTSize;
+    half fadeoutAlpha = ConvertOpaqueColorRTScreenUVToFadeAlphaParam(screenUV, reflectedPosWS.y);
+
+    uint fadeoutAlphaInt = fadeoutAlpha * 255; //8 bit
+    uint hash = id.y << 20 | id.x << 8 | fadeoutAlphaInt; //pack 3 uint into 1
+
+    InterlockedMin(HashRT[reflectedScreenID], hash); //correct sorting method, sort by id.y
+	//HashRT[reflectedScreenID] = hash; //no sorting method, don't use it, it will produce random flickering because of unknown order write(random order)
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// kernel NonMobilePathResolveColorRT
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma kernel PathResolveColorRT
+
+[numthreads(NUMTHREAD_X, NUMTHREAD_Y, 1)]
+void PathResolveColorRT(uint3 id : SV_DispatchThreadID)
+{
+	/*
+	//ref code
+	//http://remi-genin.fr/blog/screen-space-plane-indexed-reflection-in-ghost-recon-wildlands/#hash-resolve-jump
+	
+	float4 PS_ResolveHash(float2 ScreenUV) : SV_Target0
+	{
+		uint Hash = ProjectionHashTex[ScreenUV * FrameSize].x;
+		uint x = Hash & 0xFFFF; uint y = Hash >> 16;
+
+		if(Hash != 0)
+		{
+			float4 SrcColor = MainColorTex[uint2(x, y)];
+			return SrcColor;
+		}
+		else
+			return 0;
+	}
+	*/
+    uint packedData = HashRT[id.xy];
+    if (packedData == MAX_UINT) //MAX_UINT == max uint
+    {
+		//if this location is not having any reflection data (still containing clear value, still 0 reflection write), early exit to prevent wrong RT write
+        ColorRT[id.xy] = 0;
+        return;
+    }
+
+	//ghost-recon-wildlands method use 16bit y, 16bit x encode
+	//but in our implementation, 16bit is overkill because we don't need a RT that is 65536*65536
+	//instead we save 8 bits for fadeout alpha info, result in:
+	//-first 12 bits for id.y (0~4095)
+	//-then  12 bits for id.x (0~4095)
+	//-last  8  bits for alpha (0~255)
+    uint2 sampleID = uint2((packedData >> 8) & 0xFFF, packedData >> 20); //decode from single 32bit uint, to 3 separated uint (12bit y & 12bit x & 8bit alpha)
+    uint alphaAsInt = packedData & 0xFF;
+    half alphaAsFloatingPoint = alphaAsInt / 255.0;
+
+    float2 sampleUV = sampleID.xy / _RTSize;
+    half3 sampledColor = _CameraOpaqueTexture.SampleLevel(LinearClampSampler, sampleUV, 0);
+    half depth = _CameraDepthTexture.SampleLevel(LinearClampSampler, sampleUV, 0);
+    half4 finalColor = half4(sampledColor, alphaAsFloatingPoint) * _FinalTintColor;
+	
+	//finalColor.a = saturate(step(0.000001, depth));
+
+	ColorRT[id.xy] = finalColor;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// kernel FillHoles
+////////////////////////////////////////////////////////////////////////////////////////////////////
+#pragma kernel FillHoles
+
+[numthreads(NUMTHREAD_X, NUMTHREAD_Y, 1)]
+void FillHoles(uint3 id : SV_DispatchThreadID)
+{
+	//fill holes inside each 2*2
+    id.xy *= 2;
+
+	//cache read
+    half4 center = ColorRT[id.xy + uint2(0, 0)];
+    half4 right = ColorRT[id.xy + uint2(0, 1)];
+    half4 bottom = ColorRT[id.xy + uint2(1, 0)];
+    half4 bottomRight = ColorRT[id.xy + uint2(1, 1)];
+
+	//find best inside 2*2
+    half4 best = center;
+    best = right.a > best.a + 0.5 ? right : best;
+    best = bottom.a > best.a + 0.5 ? bottom : best;
+    best = bottomRight.a > best.a + 0.5 ? bottomRight : best;
+
+	//write better rgba
+    ColorRT[id.xy + uint2(0, 0)] = best.a > center.a + 0.5 ? best : center;
+    ColorRT[id.xy + uint2(0, 1)] = best.a > right.a + 0.5 ? best : right;
+    ColorRT[id.xy + uint2(1, 0)] = best.a > bottom.a + 0.5 ? best : bottom;
+    ColorRT[id.xy + uint2(1, 1)] = best.a > bottomRight.a + 0.5 ? best : bottomRight;
+}
