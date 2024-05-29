@@ -11,7 +11,7 @@ Physically Based Rendering
 
 左图为Customed,右图为Unity自带。左图额外添加了闪烁的自发光，并使用了Reflection Probe。
 
-![2024-05-21-21-12-18_converted](Readme/pbr_shader.gif)
+![2024-05-21-21-12-18_converted](Readme/pbr_shader2.gif)
 
 Ray Tracing on cpu
 
